@@ -18,7 +18,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 #==============================================================
 # API KEY DE XENO-CANTO Y CONFIGURACION DE DESCARGA
 #==============================================================
-XENOCANTO_API_KEY = "bfc619e9677e987f549863f8a7184c6c17f8f636"
+XENOCANTO_API_KEY = "     " # Pegar Api Key aqui
 XENOCANTO_API_V3  = "https://xeno-canto.org/api/3/recordings"
 #==============================================================
 
