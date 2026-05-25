@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BirdScope</title>
+    <style>
+        :root {
+            --color-primary:        #1b5e20;
+            --color-primary-light:  #4c8c4a;
+            --color-primary-faint:  #f1f8e9;
+            --color-accent:         #2962ff;
+            --color-danger:         #b71c1c;
+            --color-surface:        #ffffff;
+            --color-background:     #f0f4f0;
+            --color-border:         #dde5dd;
+            --color-text-primary:   #1a1a1a;
+            --color-text-secondary: #5c6b5c;
+            --color-text-disabled:  #9e9e9e;
+            --radius-sm:  4px;
+            --radius-md:  8px;
+            --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background-color: #f8faf8;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .app-header {
+            background-color: var(--color-primary);
+            color: #ffffff;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .app-header__icon {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .app-header__icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+
+        .app-header__title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .app-header__subtitle {
+            font-size: 0.75rem;
+            opacity: 0.75;
+            font-weight: 400;
+            margin-top: 1px;
+        }
+
+        .app-content {
+            padding: 20px 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background-color: var(--color-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+        }
+
+        .card__header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card__header-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--color-primary);
+        }
+
+        .card__body {
+            padding: 16px;
+        }
+
+        .recording-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            border: none;
+            padding: 13px 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: opacity 0.15s ease, background-color 0.15s ease;
+            letter-spacing: 0.2px;
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn--primary {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+
+        .btn--primary:not(:disabled):hover {
+            background-color: var(--color-primary-light);
+        }
+
+        .btn--danger {
+            background-color: var(--color-danger);
+            color: #ffffff;
+        }
+
+        .btn--danger:not(:disabled):hover {
+            background-color: #c62828;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background-color: #f5f7f5;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+        }
+
+        .status-indicator__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--color-text-disabled);
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .status-indicator__dot--active {
+            background-color: #e53935;
+            animation: pulse-dot 1.2s ease-in-out infinite;
+        }
+
+        .status-indicator__dot--success {
+            background-color: var(--color-primary);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1;   transform: scale(1); }
+            50%       { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        .status-indicator__text {
+            font-size: 0.82rem;
+            color: var(--color-text-secondary);
+            font-style: italic;
+        }
+
+        .result-card {
+            border-left: 3px solid var(--color-accent);
+            display: none;
+        }
+
+        .result-species-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            line-height: 1.3;
+        }
+
+        .result-species-scientific {
+            font-size: 0.85rem;
+            font-style: italic;
+            font-weight: 400;
+            color: var(--color-text-secondary);
+            margin-top: 3px;
+        }
+
+        .result-confidence-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 10px;
+            background-color: #e8eeff;
+            color: var(--color-accent);
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+        }
+
+        .result-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .reference-section {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--color-border);
+        }
+
+        .reference-item {
+            background-color: var(--color-primary-faint);
+            border-left: 3px solid var(--color-primary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .reference-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .reference-item__id {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .reference-item__meta {
+            font-size: 0.73rem;
+            color: var(--color-text-secondary);
+            margin-top: 2px;
+            margin-bottom: 6px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 360px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-border) transparent;
+        }
+
+        .history-item {
+            border: 1px solid var(--color-border);
+            background-color: #fafcfa;
+            border-radius: var(--radius-sm);
+            padding: 11px 13px;
+        }
+
+        .history-item__meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .history-item__date {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+        }
+
+        .history-item__confidence {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+
+        .history-item__species-common {
+            font-size: 0.93rem;
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .history-item__species-scientific {
+            font-size: 0.78rem;
+            font-style: italic;
+            color: var(--color-text-secondary);
+            margin-top: 1px;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--color-text-secondary);
+            font-size: 0.85rem;
+        }
+
+        audio {
+            width: 100%;
+            height: 30px;
+            margin-top: 8px;
+            border-radius: var(--radius-sm);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <header class="app-header">
+        <div class="app-header__icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm-1-9h2v5h-2zm0-3h2v2h-2z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="app-header__title">BirdScope</div>
+        </div>
+    </header>
+
+    <main class="app-content">
+
+        <div class="card">
+            <div class="card__header">
+                <div class="card__header-label">Grabacion y Analisis</div>
+            </div>
+            <div class="card__body">
+                <div class="recording-controls">
+                    <button class="btn btn--primary" id="btn-record">Iniciar Grabacion</button>
+                    <button class="btn btn--danger" id="btn-stop" disabled>Detener y Analizar</button>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-indicator__dot" id="status-dot"></div>
+                    <span class="status-indicator__text" id="status-text">Listo para grabar.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card result-card" id="result-panel">
+            <div class="card__header">
+                <div class="card__header-label">Resultado del Analisis</div>
+            </div>
+            <div class="card__body">
+                <div class="result-label">Ave Identificada</div>
+                <div class="result-species-name" id="result-common-name">Procesando...</div>
+                <div class="result-species-scientific" id="result-scientific-name"></div>
+                <div class="result-confidence-badge" id="result-confidence">Nivel de confianza: --</div>
+                <div class="reference-section">
+                    <div class="result-label">Grabacion de Referencia (Xeno-canto)</div>
+                    <div id="reference-audio-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card__header">
+                <div class="card__header-label">Historial</div>
+            </div>
+            <div class="card__body" style="padding: 12px;">
+                <div class="history-list" id="history-list">
+                    {% for record in historial %}
+                    <div class="history-item">
+                        <div class="history-item__meta">
+                            <span class="history-item__date">{{ record.fecha }}</span>
+                            <span class="history-item__confidence">{{ record.confianza }}</span>
+                        </div>
+                        <div class="history-item__species-common">{{ record.resultado }}</div>
+                        <div class="history-item__species-scientific">{{ record.nombre_cientifico }}</div>
+                        <audio controls src="{{ record.archivo }}"></audio>
+                    </div>
+                    {% else %}
+                    <div class="history-empty" id="history-empty">
+                        No se registran analisis en el historial.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    "use strict";
+
+    const btnRecord            = document.getElementById("btn-record");
+    const btnStop              = document.getElementById("btn-stop");
+    const statusDot            = document.getElementById("status-dot");
+    const statusText           = document.getElementById("status-text");
+    const resultPanel          = document.getElementById("result-panel");
+    const resultCommonName     = document.getElementById("result-common-name");
+    const resultScientificName = document.getElementById("result-scientific-name");
+    const resultConfidence     = document.getElementById("result-confidence");
+    const referenceContainer   = document.getElementById("reference-audio-container");
+    const historyList          = document.getElementById("history-list");
+    const historyEmpty         = document.getElementById("history-empty");
+
+    let mediaRecorder = null;
+    let audioChunks   = [];
+
+    function updateStatus(message, state = "idle") {
+        statusText.textContent = message;
+        statusDot.className    = "status-indicator__dot";
+        if (state === "recording") {
+            statusDot.classList.add("status-indicator__dot--active");
+        } else if (state === "success") {
+            statusDot.classList.add("status-indicator__dot--success");
+        }
+    }
+
+    function prepend_history_item(record) {
+        if (historyEmpty) historyEmpty.style.display = "none";
+
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `
+            <div class="history-item__meta">
+                <span class="history-item__date">${record.fecha}</span>
+                <span class="history-item__confidence">${record.confianza}</span>
+            </div>
+            <div class="history-item__species-common">${record.resultado}</div>
+            <div class="history-item__species-scientific">${record.nombre_cientifico}</div>
+            <audio controls src="${record.archivo}"></audio>
+        `;
+        historyList.insertBefore(item, historyList.firstChild);
+    }
+
+    function render_xenocanto_references(references) {
+        referenceContainer.innerHTML = "";
+
+        if (!references || references.length === 0) {
+            referenceContainer.innerHTML =
+                '<p style="font-size:0.8rem; color:var(--color-text-secondary); font-style:italic;">' +
+                'No se pudieron recuperar grabaciones de referencia.</p>';
+            return;
+        }
+
+        const ref  = references[0];
+        const item = document.createElement("div");
+        item.className = "reference-item";
+        item.innerHTML = `
+            <div class="reference-item__id">Registro #${ref.id} — ${ref.country}</div>
+            <div class="reference-item__meta">Registrado por: ${ref.recorder} (${ref.locality || "Localidad no registrada"})</div>
+            <audio controls src="${ref.audio_url}"></audio>
+        `;
+        referenceContainer.appendChild(item);
+    }
+
+    btnRecord.addEventListener("click", async function () {
+        audioChunks = [];
+
+        let mediaStream;
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (accessError) {
+            alert("No se pudo acceder al microfono del dispositivo.");
+            console.error("Acceso al microfono denegado:", accessError);
+            return;
+        }
+
+        const mimeOptions = [
+            { mimeType: "audio/webm;codecs=pcm" },
+            { mimeType: "audio/webm" },
+            {},
+        ];
+        const supportedOptions = mimeOptions.find(function(opt) {
+            return !opt.mimeType || MediaRecorder.isTypeSupported(opt.mimeType);
+        }) || {};
+
+        mediaRecorder = new MediaRecorder(mediaStream, supportedOptions);
+
+        mediaRecorder.ondataavailable = function(event) {
+            if (event.data && event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async function() {
+            updateStatus("Procesando audio...", "idle");
+
+            const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+            const formData  = new FormData();
+            formData.append("audio", audioBlob, "grabacion.wav");
+
+            try {
+                const response = await fetch("/subir_audio", { method: "POST", body: formData });
+
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+                const data = await response.json();
+
+                if (data.error) {
+                    updateStatus("Error en el servidor: " + data.error, "idle");
+                    return;
+                }
+
+                updateStatus("Prediccion completada.", "success");
+                resultPanel.style.display = "block";
+
+                resultCommonName.textContent     = data.resultado;
+                resultScientificName.textContent = data.nombre_cientifico;
+                resultConfidence.textContent     = "Nivel de confianza: " + data.confianza;
+
+                render_xenocanto_references(data.xeno_canto);
+                prepend_history_item(data);
+
+            } catch (fetchError) {
+                updateStatus("Error de comunicacion con el servidor.", "idle");
+                console.error("Fallo en la solicitud al servidor:", fetchError);
+            }
+        };
+
+        mediaRecorder.start();
+        btnRecord.disabled = true;
+        btnStop.disabled   = false;
+        updateStatus("Grabacion en curso...", "recording");
+    });
+
+    btnStop.addEventListener("click", function() {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(function(track) { track.stop(); });
+        }
+        btnRecord.disabled = false;
+        btnStop.disabled   = true;
+        updateStatus("Deteniendo grabacion...", "idle");
+    });
+</script>
+
+</body>
+</html>

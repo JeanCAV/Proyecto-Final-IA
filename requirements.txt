@@ -1,0 +1,36 @@
+# =============================================================================
+# BirdScope — Dependencias del entorno Python
+# Instalacion: pip install -r requirements.txt
+#
+# Versiones minimas probadas con Python 3.12 en Windows 10/11 (venv)
+# =============================================================================
+
+# Servidor web
+flask>=3.0.0
+
+# Peticiones HTTP (API Xeno-canto)
+requests>=2.31.0
+
+# Procesamiento de audio — conversion de formatos y normalizacion PCM
+pydub>=0.25.1
+
+# Lectura de archivos WAV tolerante a multiples formatos de bit depth
+scipy>=1.13.0
+
+# Algebra lineal y manipulacion de tensores numericos
+numpy>=1.26.0
+
+# Deep learning — arquitectura MobileNetV2 y pipeline de entrenamiento
+tensorflow>=2.16.0
+
+# Preprocesamiento y particion del dataset
+scikit-learn>=1.4.0
+
+# Generacion de imagenes de espectrograma para la interfaz web
+matplotlib>=3.8.0
+
+# Manipulacion de imagenes — conversion escala de grises y redimension
+Pillow>=10.3.0
+
+# Para procesamiento de audio con Mel-espectrogramas (necesario para entrenamiento mejorado)
+librosa>=0.10.0
